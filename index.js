@@ -9,7 +9,7 @@ const redis = require("redis");
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
-const store = redis.createClient();
+const store = redis.createClient({ url: process.env.REDIS_URL });
 
 const client = new Twitter({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
