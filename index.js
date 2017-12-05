@@ -31,11 +31,11 @@ async function screenshotTweet(link, path) {
 }
 
 (async () => {
-  const tweets = await client.get('search/tweets', { q: process.env.SEARCH_QUERY, lang: process.env.SEARCH_LANGUAGE, result_type: "recent", count: 100 });
+  const tweets = await client.get('search/tweets', { q: `"${process.env.SEARCH_QUERY}"`, lang: process.env.SEARCH_LANGUAGE, result_type: "recent", count: 100 });
 
   for (status of tweets.statuses) {
-
-    if (!status.in_reply_to_status_id &&
+    console.log(status);
+    if (!status.in_reply_to_status_id && !status.retweeted_status &&
         status.text.length > parseInt(process.env.MIN_TEXT_LENGTH || 40) &&
         status.text.toLowerCase().match(process.env.MATCH_FILTER.toLowerCase()) &&
         !(await store.getAsync(status.id_str))) {
@@ -44,6 +44,7 @@ async function screenshotTweet(link, path) {
       tmp.dir(async function(err, dirPath) {
         const path = dirPath + "/screenshot.png";
 
+        await new Promise(resolve => setTimeout(resolve, 5000));
         await screenshotTweet(`https://twitter.com/${status.user.screen_name}/status/${status.id_str}`, path);
         const mediaData = require('fs').readFileSync(path);
 
