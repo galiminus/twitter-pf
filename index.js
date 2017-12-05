@@ -24,11 +24,10 @@ async function screenshotTweet(link, path) {
 }
 
 (async () => {
-  const tweets = await client.get('search/tweets', { q: '"pauvre france"', lang: "fr", result_type: "recent", count: 100 });
+  const tweets = await client.get('search/tweets', { q: process.env.SEARCH_QUERY, lang: process.env.SEARCH_LANGUAGE, result_type: "recent", count: 100 });
 
   for (status of tweets.statuses) {
-    console.log(status.in_reply_to_status_id, status.text);
-    if (!status.in_reply_to_status_id && status.text.match(/pauvre france/i)) {
+    if (!status.in_reply_to_status_id && status.text.length > parseInt(process.env.MIN_TEXT_LENGTH || 40) && status.text.toLowerCase().match(process.env.MATCH_FILTER.toLowerCase())) {
       console.log(status);
       tmp.dir(async function(err, dirPath) {
         const path = dirPath + "/screenshot.png";
