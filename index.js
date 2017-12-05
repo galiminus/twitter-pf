@@ -2,7 +2,14 @@ require('dotenv').config();
 
 const Twitter = require('twitter');
 const puppeteer = require('puppeteer');
-var tmp = require('tmp');
+const tmp = require('tmp');
+
+const bluebird = require("bluebird");
+const redis = require("redis");
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
+
+const store = redis.createClient();
 
 const client = new Twitter({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
@@ -27,8 +34,13 @@ async function screenshotTweet(link, path) {
   const tweets = await client.get('search/tweets', { q: process.env.SEARCH_QUERY, lang: process.env.SEARCH_LANGUAGE, result_type: "recent", count: 100 });
 
   for (status of tweets.statuses) {
-    if (!status.in_reply_to_status_id && status.text.length > parseInt(process.env.MIN_TEXT_LENGTH || 40) && status.text.toLowerCase().match(process.env.MATCH_FILTER.toLowerCase())) {
+
+    if (!status.in_reply_to_status_id &&
+        status.text.length > parseInt(process.env.MIN_TEXT_LENGTH || 40) &&
+        status.text.toLowerCase().match(process.env.MATCH_FILTER.toLowerCase()) &&
+        !(await store.getAsync(status.id_str))) {
       console.log(status);
+      await store.setAsync(status.id_str, "x");
       tmp.dir(async function(err, dirPath) {
         const path = dirPath + "/screenshot.png";
 
@@ -43,4 +55,5 @@ async function screenshotTweet(link, path) {
       break;
     }
   }
+  store.quit();
 })();
