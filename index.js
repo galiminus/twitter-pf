@@ -30,30 +30,41 @@ async function screenshotTweet(link, path) {
   await browser.close();
 }
 
+function status_includes(text, match_filters) {
+  for (let match_filter of match_filters) {
+    if (text.toLowerCase().includes(match_filter.toLowerCase())) {
+      return (true);
+    }
+  }
+  return (false);
+}
+
 (async () => {
-  const tweets = await client.get('search/tweets', { q: `"${process.env.SEARCH_QUERY}"`, lang: process.env.SEARCH_LANGUAGE, result_type: "recent", count: 100 });
+  for (let search_query of process.env.SEARCH_QUERY.split(",")) {
+    const tweets = await client.get('search/tweets', { q: `"${search_query}"`, lang: process.env.SEARCH_LANGUAGE, result_type: "recent", count: 100 });
 
-  for (status of tweets.statuses) {
-    console.log(status);
-    if (!status.in_reply_to_status_id && !status.retweeted_status &&
-        status.text.length > parseInt(process.env.MIN_TEXT_LENGTH || 40) &&
-        status.text.toLowerCase().match(process.env.MATCH_FILTER.toLowerCase()) &&
-        !(await store.getAsync(status.id_str))) {
+    for (status of tweets.statuses) {
       console.log(status);
-      await store.setAsync(status.id_str, "x");
-      tmp.dir(async function(err, dirPath) {
-        const path = dirPath + "/screenshot.png";
+      if (!status.in_reply_to_status_id && !status.retweeted_status &&
+          status.text.length > parseInt(process.env.MIN_TEXT_LENGTH || 40) &&
+          status_includes(status.text, process.env.MATCH_FILTER.split(",")) &&
+          !(await store.getAsync(status.id_str))) {
+        console.log(status);
+        await store.setAsync(status.id_str, "x");
+        tmp.dir(async function(err, dirPath) {
+          const path = dirPath + "/screenshot.png";
 
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        await screenshotTweet(`https://twitter.com/${status.user.screen_name}/status/${status.id_str}`, path);
-        const mediaData = require('fs').readFileSync(path);
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          await screenshotTweet(`https://twitter.com/${status.user.screen_name}/status/${status.id_str}`, path);
+          const mediaData = require('fs').readFileSync(path);
 
-        const mediaRecord = await client.post('media/upload', { media: mediaData });
-        await client.post('statuses/update', {
-          media_ids: mediaRecord.media_id_string
+          const mediaRecord = await client.post('media/upload', { media: mediaData });
+          await client.post('statuses/update', {
+            media_ids: mediaRecord.media_id_string
+          });
         });
-      });
-      break;
+        break;
+      }
     }
   }
   store.quit();
