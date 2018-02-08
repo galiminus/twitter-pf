@@ -1,6 +1,6 @@
 # pauvre-france
 
-A Twitter bot that take screenshot and post them them based on some keywords.
+A Twitter bot that takes screenshot and post them them based on some keywords.
 
 ## Configuration
 
