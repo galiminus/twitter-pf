@@ -138,3 +138,4 @@ x11-utils
 x11-xserver-utils
 xdg-utils
 xkb-data
+libgconf-2-4
