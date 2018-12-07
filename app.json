@@ -1,7 +1,8 @@
 {
   "scripts": {
     "dokku": {
-      "predeploy": "wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' > /etc/apt/sources.list.d/google-chrome.list",
+	"predeploy": "wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' > /etc/apt/sources.list.d/google-chrome.list",
+	"postdeploy": "sudo apt-get install google-chrome-unstable"
     }
   }
 }
