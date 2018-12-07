@@ -1,1 +1,1 @@
-ppa:google-chrome-unstable/stable
+deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
