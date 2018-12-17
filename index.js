@@ -49,7 +49,6 @@ function shuffle(array) {
   return array;
 }
 
-
 let done = false;
 
 (async () => {
@@ -71,7 +70,7 @@ let done = false;
 
           const mediaRecord = await client.post('media/upload', { media: mediaData });
           await client.post('statuses/update', {
-            status: `@${status.user.screen_name}`,
+            status: `"${search_query}" par @${status.user.screen_name}`,
             media_ids: mediaRecord.media_id_string
           });
         });
