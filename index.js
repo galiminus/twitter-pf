@@ -39,10 +39,20 @@ function status_includes(text, match_filters) {
   return (false);
 }
 
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    let temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+  }
+  return array;
+}
+
 let done = false;
 
 (async () => {
-  for (let search_query of process.env.SEARCH_QUERY.split(",")) {
+  for (let search_query of shuffle(process.env.SEARCH_QUERY.split(","))) {
     const tweets = await client.get('search/tweets', { q: `"${search_query}"`, lang: process.env.SEARCH_LANGUAGE, result_type: "recent", count: 100 });
 
     for (status of tweets.statuses) {
