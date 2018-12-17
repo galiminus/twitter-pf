@@ -39,16 +39,14 @@ function status_includes(text, match_filters) {
   return (false);
 }
 
+let done = false;
 
 (async () => {
-//   console.log(!(await store.getAsync("1069681576739516421")))
-// return;
-
   for (let search_query of process.env.SEARCH_QUERY.split(",")) {
     const tweets = await client.get('search/tweets', { q: `"${search_query}"`, lang: process.env.SEARCH_LANGUAGE, result_type: "recent", count: 100 });
 
     for (status of tweets.statuses) {
-      if (!status.in_reply_to_status_id && !status.in_reply_to_user_id && !status.in_reply_to_status_id_str && !status.in_reply_to_user_id_str && !status.retweeted_status &&
+      if (!status.in_reply_to_status_id_str && !status.in_reply_to_user_id_str && !status.retweeted_status &&
           status.text.length > parseInt(process.env.MIN_TEXT_LENGTH || 40) &&
           status_includes(status.text, process.env.MATCH_FILTER.split(",")) &&
           !(await store.getAsync(status.id_str))) {
@@ -57,7 +55,6 @@ function status_includes(text, match_filters) {
           const path = dirPath + "/screenshot.png";
 
           await new Promise(resolve => setTimeout(resolve, 5000));
-          // console.log(`https://twitter.com/${status.user.screen_name}/status/${status.id_str}`);
           await screenshotTweet(`https://twitter.com/${status.user.screen_name}/status/${status.id_str}`, path);
           const mediaData = require('fs').readFileSync(path);
 
@@ -66,8 +63,13 @@ function status_includes(text, match_filters) {
             media_ids: mediaRecord.media_id_string
           });
         });
+        done = true;
         break;
       }
+    }
+
+    if (done) {
+      break;
     }
   }
   store.quit();
