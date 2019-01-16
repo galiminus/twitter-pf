@@ -1,4 +1,4 @@
-# pauvre-france
+# PF
 
 A Twitter bot that takes screenshots based on some keywords and tweet them.
 
